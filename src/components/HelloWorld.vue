@@ -1,24 +1,102 @@
 <script setup>
-import { ref } from 'vue'
+import axios from 'axios'
+import { ref, onMounted } from 'vue'
 
-defineProps({
-  msg: String
+const api = 'https://todolist-api.hexschool.io'
+const isShow = ref(true)
+let isLogin = ref(false)
+//註冊
+const signupRes = ref('')
+const messageSignup = ref('')
+const signUp = ref({ email: '', password: '', nickname: '' })
+const signupButton = async () => {
+  try {
+    console.log(`${api}/users/sign_up`)
+    const res = await axios.post(`${api}/users/sign_up`, signUp.value)
+    console.log(res)
+    signupRes.value = res.data.uid
+    alert('註冊成功')
+    isShow.value = true
+  } catch (error) {
+    console.log(error)
+    messageSignup.value = '驗證失敗: ' + error.response.data.message
+  }
+}
+//登入
+const signinRes = ref('')
+const signIn = ref({ email: '', password: '' })
+const messageSignIn = ref('')
+const user = ref({
+  nickname: '',
+  uid: ''
 })
+const signinButton = async () => {
+  try {
+    const res = await axios.post(`${api}/users/sign_in`, signIn.value)
+    console.log(res)
+    // cookie存token
+    signinRes.value = res.data.token
+    //寫入：cookie =token
+    document.cookie = `todolistCookieName=${res.data.token}`
+    isLogin.value = true
+    user.value = res.data
+    console.log(user)
+  } catch (error) {
+    messageSignIn.value = '驗證失敗:' + error.message
+    console.log(messageSignIn)
+  }
+}
+//驗證登入
+const myToken = document.cookie.replace(
+  /(?:(?:^|.*;\s*)todolistCookieName\s*\=\s*([^;]*).*$)|^.*$/,
+  '$1'
+)
 
-const count = ref(0)
+onMounted(async () => {
+  try {
+    const res = await axios.get(`${api}/users/checkout`, {
+      headers: {
+        authorization: myToken
+      }
+    })
+    user.value = res.data
+    isLogin.value = true
+    console.log(res)
+  } catch (error) {
+    console.log(error.message)
+  }
+})
+//登出
+const signoutButton = async () => {
+  try {
+    const res = await axios.post(
+      `${api}/users/sign_out`,
+      {},
+      {
+        headers: {
+          authorization: myToken
+        }
+      }
+    )
+    console.log(res)
+    isLogin.value = false
+  } catch (error) {
+    console.log(error.message)
+  }
+}
 </script>
-
 <template>
   <!-- login_page -->
-  <div id="loginPage" class="bg-yellow">
+  <div id="loginPage" class="bg-yellow" v-if="!isLogin && isShow">
     <div class="conatiner loginPage vhContainer">
       <div class="side">
-        <a href="#"
-          ><img
+        <a href="#">
+          <img
             class="logoImg"
             src="https://raw.githubusercontent.com/hexschool/2022-web-layout-training/main/todolist/logo.png"
             alt=""
-        /></a>
+          />
+        </a>
         <img
           class="d-m-n"
           src="https://raw.githubusercontent.com/hexschool/2022-web-layout-training/main/todolist/img.png"
@@ -36,8 +114,10 @@ const count = ref(0)
             name="email"
             placeholder="請輸入 email"
             required
+            v-model="signIn.email"
           />
           <span>此欄位不可留空</span>
+
           <label class="formControls_label" for="pwd">密碼</label>
           <input
             class="formControls_input"
@@ -46,21 +126,18 @@ const count = ref(0)
             id="pwd"
             placeholder="請輸入密碼"
             required
+            v-model="signIn.password"
           />
-          <input
-            class="formControls_btnSubmit"
-            type="button"
-            onclick="javascript:location.href='#todoListPage'"
-            value="登入"
-          />
-          <a class="formControls_btnLink" href="#signUpPage">註冊帳號</a>
+          <span>{{ messageSignIn }}</span>
+          <input class="formControls_btnSubmit" type="button" @click="signinButton" value="登入" />
+          <a class="formControls_btnLink" @click="isShow = !isShow">註冊帳號</a>
         </form>
       </div>
     </div>
   </div>
 
   <!-- sign up -->
-  <div id="signUpPage" class="bg-yellow">
+  <div id="signUpPage" class="bg-yellow" v-if="!isShow">
     <div class="conatiner signUpPage vhContainer">
       <div class="side">
         <a href="#"
@@ -86,6 +163,7 @@ const count = ref(0)
             name="email"
             placeholder="請輸入 email"
             required
+            v-model="signUp.email"
           />
           <label class="formControls_label" for="name">您的暱稱</label>
           <input
@@ -94,6 +172,7 @@ const count = ref(0)
             name="name"
             id="name"
             placeholder="請輸入您的暱稱"
+            v-model="signUp.nickname"
           />
           <label class="formControls_label" for="pwd">密碼</label>
           <input
@@ -103,6 +182,7 @@ const count = ref(0)
             id="pwd"
             placeholder="請輸入密碼"
             required
+            v-model="signUp.password"
           />
           <label class="formControls_label" for="pwd">再次輸入密碼</label>
           <input
@@ -116,7 +196,7 @@ const count = ref(0)
           <input
             class="formControls_btnSubmit"
             type="button"
-            onclick="javascript:location.href='#todoListPage'"
+            @click="signupButton"
             value="註冊帳號"
           />
           <a class="formControls_btnLink" href="#loginPage">登入</a>
@@ -126,14 +206,14 @@ const count = ref(0)
   </div>
 
   <!-- ToDo List -->
-  <div id="todoListPage" class="bg-half">
+  <div id="todoListPage" class="bg-half" v-if="isLogin">
     <nav>
       <h1><a href="#">ONLINE TODO LIST</a></h1>
       <ul>
         <li class="todo_sm">
-          <a href="#"><span>王小明的代辦</span></a>
+          <span>{{ user.nickname }}的代辦</span>
         </li>
-        <li><a href="#loginPage">登出</a></li>
+        <li><a @click="signoutButton">登出</a></li>
       </ul>
     </nav>
     <div class="conatiner todoListPage vhContainer">
