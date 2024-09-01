@@ -84,6 +84,26 @@ const signoutButton = async () => {
     console.log(error.message)
   }
 }
+//代辦事項
+const text = ref('')
+const todos = ref([])
+
+const addTodo = () => {
+
+  //新增文字匡內容至下方資料
+  todos.value.push({
+    text: text.value,
+    id: new Date().getTime(),
+    checked:false,
+  })
+  console.log(todos.value)
+}
+const deleteTodo = (item) => {
+  console.log(item)
+  const index = todos.value.findIndex((todo) => todo.id === item.id)
+  console.log(index)
+  todos.value.splice(index, 1)
+}
 </script>
 <template>
   <!-- login_page -->
@@ -219,9 +239,13 @@ const signoutButton = async () => {
     <div class="conatiner todoListPage vhContainer">
       <div class="todoList_Content">
         <div class="inputBox">
-          <input type="text" placeholder="請輸入待辦事項" />
-          <a href="#">
-            <i class="fa fa-plus"></i>
+          <input
+          type="text"
+          placeholder="請輸入待辦事項"
+          v-model="text"
+          />
+          <a @click="addTodo">
+            +
           </a>
         </div>
         <div class="todoList_list">
@@ -231,62 +255,22 @@ const signoutButton = async () => {
             <li><a href="#">已完成</a></li>
           </ul>
           <div class="todoList_items">
-            <ul class="todoList_item">
-              <li>
+
+        <ul class="todoList_item">
+              <li v-for="item in todos" :key="item.id">
                 <label class="todoList_label">
-                  <input class="todoList_input" type="checkbox" value="true" />
-                  <span>把冰箱發霉的檸檬拿去丟</span>
+                  <input class="todoList_input" type="checkbox" v-model="item.checked" />
+                  <span :class="{'text-decoration-line-through':item.checked}"> {{ item.text }}</span>
                 </label>
-                <a href="#">
-                  <i class="fa fa-times"></i>
-                </a>
+                <button
+              type="button"
+              @click="deleteTodo(item)"
+              class="btn btn-sm btn-outline-secondary"
+            >
+              X
+            </button>
               </li>
-              <li>
-                <label class="todoList_label">
-                  <input class="todoList_input" type="checkbox" value="true" />
-                  <span>打電話叫媽媽匯款給我</span>
-                </label>
-                <a href="#">
-                  <i class="fa fa-times"></i>
-                </a>
-              </li>
-              <li>
-                <label class="todoList_label">
-                  <input class="todoList_input" type="checkbox" value="true" />
-                  <span>整理電腦資料夾</span>
-                </label>
-                <a href="#">
-                  <i class="fa fa-times"></i>
-                </a>
-              </li>
-              <li>
-                <label class="todoList_label">
-                  <input class="todoList_input" type="checkbox" value="true" />
-                  <span>繳電費水費瓦斯費</span>
-                </label>
-                <a href="#">
-                  <i class="fa fa-times"></i>
-                </a>
-              </li>
-              <li>
-                <label class="todoList_label">
-                  <input class="todoList_input" type="checkbox" value="true" />
-                  <span>約vicky禮拜三泡溫泉</span>
-                </label>
-                <a href="#">
-                  <i class="fa fa-times"></i>
-                </a>
-              </li>
-              <li>
-                <label class="todoList_label">
-                  <input class="todoList_input" type="checkbox" value="true" />
-                  <span>約ada禮拜四吃晚餐</span>
-                </label>
-                <a href="#">
-                  <i class="fa fa-times"></i>
-                </a>
-              </li>
-            </ul>
+          </ul>
             <div class="todoList_statistics">
               <p>5 個已完成項目</p>
             </div>
@@ -298,7 +282,7 @@ const signoutButton = async () => {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC&display=swap');
+
 html,
 body,
 div,
@@ -461,6 +445,9 @@ body {
 img {
   width: 100%;
   vertical-align: middle;
+}
+button,a{
+  cursor: pointer;
 }
 
 .logoImg {
@@ -757,6 +744,7 @@ nav ul a span {
 
 .inputBox {
   width: 100%;
+  
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
@@ -768,6 +756,7 @@ nav ul a span {
 
 .inputBox input {
   background: #fff;
+  color: #000;
   border: none;
   border-radius: 10px;
   position: relative;
@@ -784,13 +773,14 @@ nav ul a span {
   position: absolute;
   background: #333333;
   color: white;
-  font-size: 20px;
+  font-size: 14px;
   text-decoration: none;
   text-align: center;
   border-radius: 10px;
   top: 4px;
   right: 4px;
   padding: 10px;
+  cursor: pointer;
 }
 
 .todoList_list {
