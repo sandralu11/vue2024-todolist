@@ -20,6 +20,7 @@ const signupButton = async () => {
   } catch (error) {
     console.log(error)
     messageSignup.value = '驗證失敗: ' + error.response.data.message
+    alert(messageSignup.value)
   }
 }
 //登入
@@ -105,10 +106,19 @@ const deleteTodo = (item) => {
 
 //tab
 const selectedIndex = ref(0)
+const filterList=computed(()=>{
+  if(selectedIndex.value===1){
+    return todos.value.filter((todo)=>todo.checked==false)
+  }else if(selectedIndex.value===2){
+    return todos.value.filter((todo)=>todo.checked==true)
+  }else{
+    return todos.value
+  }
+})
 //全部數量
 const unfinishedCount = computed(() => {
-  console.log(todos.value.length)
-  return todos.value.length
+  const unfinished=todos.value.filter((todo)=>todo.checked==false)
+  return unfinished.length
 })
 //沒有數量時待目前尚無待辦事項
 const noCountShow = ref(true)
@@ -139,7 +149,7 @@ const noCount = computed(() => {
         />
       </div>
       <div>
-        <form class="formControls" action="index.html">
+        <form class="formControls" action="index.html" @submit.prevent="handleSubmit">
           <h2 class="formControls_txt">最實用的線上代辦事項服務</h2>
           <label class="formControls_label" for="email">Email</label>
           <input
@@ -151,8 +161,7 @@ const noCount = computed(() => {
             required
             v-model="signIn.email"
           />
-          <span>此欄位不可留空</span>
-
+          <span class="error">此欄位不可留空</span>
           <label class="formControls_label" for="pwd">密碼</label>
           <input
             class="formControls_input"
@@ -164,7 +173,7 @@ const noCount = computed(() => {
             v-model="signIn.password"
           />
           <span>{{ messageSignIn }}</span>
-          <input class="formControls_btnSubmit" type="button" @click="signinButton" value="登入" />
+          <input class="formControls_btnSubmit" type="submit" @click="signinButton" value="登入" />
           <a class="formControls_btnLink" @click="isShow = !isShow">註冊帳號</a>
         </form>
       </div>
@@ -193,7 +202,7 @@ const noCount = computed(() => {
           <label class="formControls_label" for="email">Email</label>
           <input
             class="formControls_input"
-            type="text"
+            type="email"
             id="email"
             name="email"
             placeholder="請輸入 email"
@@ -234,7 +243,7 @@ const noCount = computed(() => {
             @click="signupButton"
             value="註冊帳號"
           />
-          <a class="formControls_btnLink" href="#loginPage">登入</a>
+          <a class="formControls_btnLink"  @click.prevent="isShow = !isShow">登入</a>
         </form>
       </div>
     </div>
@@ -266,7 +275,7 @@ const noCount = computed(() => {
           </ul>
           <div class="todoList_items">
             <ul class="todoList_item">
-              <li v-for="item in todos" :key="item.id">
+              <li v-for="item in  filterList" :key="item.id">
                 <label class="todoList_label">
                   <input class="todoList_input" type="checkbox" v-model="item.checked" />
                   <span :class="{ 'text-decoration-line-through': item.checked }">
@@ -453,6 +462,12 @@ img {
 button,
 a {
   cursor: pointer;
+}
+.error {
+  display: none;
+}
+input[type=text]:user-invalid + .error {
+  display: block;
 }
 
 .logoImg {
