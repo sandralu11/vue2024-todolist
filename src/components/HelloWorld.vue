@@ -1,6 +1,6 @@
 <script setup>
 import axios from 'axios'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 
 const api = 'https://todolist-api.hexschool.io'
 const isShow = ref(true)
@@ -87,23 +87,38 @@ const signoutButton = async () => {
 //代辦事項
 const text = ref('')
 const todos = ref([])
+const tabs = ref([{ title: '全部' }, { title: '待完成' }, { title: '已完成' }])
 
 const addTodo = () => {
-
   //新增文字匡內容至下方資料
   todos.value.push({
     text: text.value,
     id: new Date().getTime(),
-    checked:false,
+    checked: false
   })
   console.log(todos.value)
 }
 const deleteTodo = (item) => {
-  console.log(item)
   const index = todos.value.findIndex((todo) => todo.id === item.id)
-  console.log(index)
   todos.value.splice(index, 1)
 }
+
+//tab
+const selectedIndex = ref(0)
+//全部數量
+const unfinishedCount = computed(() => {
+  console.log(todos.value.length)
+  return todos.value.length
+})
+//沒有數量時待目前尚無待辦事項
+const noCountShow = ref(true)
+const noCount = computed(() => {
+  if (todos.value.length === 0) {
+    return '目前尚無待辦事項'
+  } else {
+    noCountShow.value = false
+  }
+})
 </script>
 <template>
   <!-- login_page -->
@@ -239,40 +254,30 @@ const deleteTodo = (item) => {
     <div class="conatiner todoListPage vhContainer">
       <div class="todoList_Content">
         <div class="inputBox">
-          <input
-          type="text"
-          placeholder="請輸入待辦事項"
-          v-model="text"
-          />
-          <a @click="addTodo">
-            +
-          </a>
+          <input type="text" placeholder="請輸入待辦事項" v-model="text" />
+          <a @click="addTodo"> + </a>
         </div>
-        <div class="todoList_list">
+        <div v-if="noCountShow">{{ noCount }}</div>
+        <div class="todoList_list" v-if="!noCountShow">
           <ul class="todoList_tab">
-            <li><a href="#" class="active">全部</a></li>
-            <li><a href="#">待完成</a></li>
-            <li><a href="#">已完成</a></li>
+            <li v-for="(tab, index) in tabs" :key="index" @click="selectedIndex = index">
+              <a href="#" :class="{ active: selectedIndex === index }">{{ tab.title }}</a>
+            </li>
           </ul>
           <div class="todoList_items">
-
-        <ul class="todoList_item">
+            <ul class="todoList_item">
               <li v-for="item in todos" :key="item.id">
                 <label class="todoList_label">
                   <input class="todoList_input" type="checkbox" v-model="item.checked" />
-                  <span :class="{'text-decoration-line-through':item.checked}"> {{ item.text }}</span>
+                  <span :class="{ 'text-decoration-line-through': item.checked }">
+                    {{ item.text }}
+                  </span>
                 </label>
-                <button
-              type="button"
-              @click="deleteTodo(item)"
-              class="btn btn-sm btn-outline-secondary"
-            >
-              X
-            </button>
+                <button type="button" @click="deleteTodo(item)" class="btn">X</button>
               </li>
-          </ul>
+            </ul>
             <div class="todoList_statistics">
-              <p>5 個已完成項目</p>
+              <p>{{ unfinishedCount }} 個待完成項目</p>
             </div>
           </div>
         </div>
@@ -282,7 +287,6 @@ const deleteTodo = (item) => {
 </template>
 
 <style scoped>
-
 html,
 body,
 div,
@@ -446,7 +450,8 @@ img {
   width: 100%;
   vertical-align: middle;
 }
-button,a{
+button,
+a {
   cursor: pointer;
 }
 
@@ -744,7 +749,7 @@ nav ul a span {
 
 .inputBox {
   width: 100%;
-  
+
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
