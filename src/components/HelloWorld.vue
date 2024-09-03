@@ -97,7 +97,8 @@ const addTodo = () => {
     id: new Date().getTime(),
     checked: false
   })
-  console.log(todos.value)
+  text.value = ''
+  // console.log(todos.value)
 }
 const deleteTodo = (item) => {
   const index = todos.value.findIndex((todo) => todo.id === item.id)
@@ -106,18 +107,18 @@ const deleteTodo = (item) => {
 
 //tab
 const selectedIndex = ref(0)
-const filterList=computed(()=>{
-  if(selectedIndex.value===1){
-    return todos.value.filter((todo)=>todo.checked==false)
-  }else if(selectedIndex.value===2){
-    return todos.value.filter((todo)=>todo.checked==true)
-  }else{
+const filterList = computed(() => {
+  if (selectedIndex.value === 1) {
+    return todos.value.filter((todo) => todo.checked == false)
+  } else if (selectedIndex.value === 2) {
+    return todos.value.filter((todo) => todo.checked == true)
+  } else {
     return todos.value
   }
 })
 //全部數量
 const unfinishedCount = computed(() => {
-  const unfinished=todos.value.filter((todo)=>todo.checked==false)
+  const unfinished = todos.value.filter((todo) => todo.checked == false)
   return unfinished.length
 })
 //沒有數量時待目前尚無待辦事項
@@ -243,7 +244,7 @@ const noCount = computed(() => {
             @click="signupButton"
             value="註冊帳號"
           />
-          <a class="formControls_btnLink"  @click.prevent="isShow = !isShow">登入</a>
+          <a class="formControls_btnLink" @click.prevent="isShow = !isShow">登入</a>
         </form>
       </div>
     </div>
@@ -275,7 +276,7 @@ const noCount = computed(() => {
           </ul>
           <div class="todoList_items">
             <ul class="todoList_item">
-              <li v-for="item in  filterList" :key="item.id">
+              <li v-for="item in filterList" :key="item.id">
                 <label class="todoList_label">
                   <input class="todoList_input" type="checkbox" v-model="item.checked" />
                   <span :class="{ 'text-decoration-line-through': item.checked }">
@@ -296,169 +297,6 @@ const noCount = computed(() => {
 </template>
 
 <style scoped>
-html,
-body,
-div,
-span,
-applet,
-object,
-iframe,
-h1,
-h2,
-h3,
-h4,
-h5,
-h6,
-p,
-blockquote,
-pre,
-a,
-abbr,
-acronym,
-address,
-big,
-cite,
-code,
-del,
-dfn,
-em,
-img,
-ins,
-kbd,
-q,
-s,
-samp,
-small,
-strike,
-strong,
-sub,
-sup,
-tt,
-var,
-b,
-u,
-i,
-center,
-dl,
-dt,
-dd,
-ol,
-ul,
-li,
-fieldset,
-form,
-label,
-legend,
-table,
-caption,
-tbody,
-tfoot,
-thead,
-tr,
-th,
-td,
-article,
-aside,
-canvas,
-details,
-embed,
-figure,
-figcaption,
-footer,
-header,
-hgroup,
-menu,
-nav,
-output,
-ruby,
-section,
-summary,
-time,
-mark,
-audio,
-video {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  font-size: 100%;
-  font: inherit;
-  vertical-align: baseline;
-}
-
-/* HTML5 display-role reset for older browsers */
-article,
-aside,
-details,
-figcaption,
-figure,
-footer,
-header,
-hgroup,
-menu,
-nav,
-section {
-  display: block;
-}
-
-body {
-  line-height: 1;
-}
-
-ol,
-ul {
-  list-style: none;
-}
-
-blockquote,
-q {
-  quotes: none;
-}
-
-blockquote:before,
-blockquote:after,
-q:before,
-q:after {
-  content: '';
-  content: none;
-}
-
-table {
-  border-collapse: collapse;
-  border-spacing: 0;
-}
-
-* {
-  box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-}
-
-*,
-*::before,
-*::after {
-  -webkit-box-sizing: border-box;
-  box-sizing: border-box;
-}
-
-.selector-for-some-widget {
-  -webkit-box-sizing: content-box;
-  box-sizing: content-box;
-}
-
-html {
-  height: 100%;
-}
-
-body {
-  font-family: 'Noto Sans TC';
-  margin: 0 auto;
-  overflow: hidden;
-}
-
-img {
-  width: 100%;
-  vertical-align: middle;
-}
 button,
 a {
   cursor: pointer;
@@ -466,7 +304,7 @@ a {
 .error {
   display: none;
 }
-input[type=text]:user-invalid + .error {
+input[type='text']:user-invalid + .error {
   display: block;
 }
 
@@ -833,7 +671,10 @@ nav ul a span {
   padding: 16px;
   border-bottom: 2px solid #efefef;
 }
-
+.btn {
+  background-color: transparent;
+  border: none;
+}
 .todoList_list .todoList_tab .active {
   color: #333333;
   border-bottom: 2px solid #333333;
