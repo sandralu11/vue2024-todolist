@@ -49,7 +49,7 @@ const getTodos = async () => {
   const fetch_response = await fetch(`${api}/todos`, { headers: { Authorization: myToken } })
   const res = await fetch_response.json()
   todos.value = res.data
-  console.log(todos.value)
+  // console.log(todos.value)
 }
 //新增
 const addTodo = async () => {
@@ -63,13 +63,24 @@ const addTodo = async () => {
     body: JSON.stringify(newtodo.value)
   })
   const res = await fetch_response.json()
-  console.log(res)
+  // console.log(res)
   newtodo.value = ''
 }
-
-const deleteTodo = (item) => {
-  const index = todos.value.findIndex((todo) => todo.id === item.id)
-  todos.value.splice(index, 1)
+//刪除
+const deleteTodo = async (item) => {
+  const id = item.id
+  const fetch_response = await fetch(`${api}/todos/${id}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: myToken
+    },
+    body: JSON.stringify()
+  })
+  const res = await fetch_response.json(id)
+  // console.log(res)
+  // const index = todos.value.findIndex((todo) => todo.id === id)
+  // todos.value.splice(index, 1)
+  getTodos()
 }
 
 //tab
