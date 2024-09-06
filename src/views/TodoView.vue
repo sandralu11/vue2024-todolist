@@ -1,8 +1,9 @@
 <script setup>
 import axios from 'axios'
-import { ref, onMounted, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 const api = 'https://todolist-api.hexschool.io'
+
 //驗證登入
 const myToken = document.cookie.replace(
   /(?:(?:^|.*;\s*)todolistCookieName\s*\=\s*([^;]*).*$)|^.*$/,
@@ -12,6 +13,14 @@ const route = useRoute()
 const router = useRouter()
 const user = ref({
   nickname: route.query.name
+})
+//撈資料
+onMounted(() => {
+  if (myToken) {
+    getTodos()
+  } else {
+    router.push('/LoginPage')
+  }
 })
 //登出
 const signoutButton = async () => {
@@ -33,37 +42,63 @@ const signoutButton = async () => {
 //代辦事項
 const text = ref('')
 const todos = ref([])
-const tabs = ref([{ title: '全部' }, { title: '待完成' }, { title: '已完成' }])
+const newtodo = ref({ content: '' })
 
-const addTodo = () => {
-  //新增文字匡內容至下方資料
-  todos.value.push({
-    text: text.value,
-    id: new Date().getTime(),
-    checked: false
-  })
-  text.value = ''
-  // console.log(todos.value)
+//讀取
+const getTodos = async () => {
+  const fetch_response = await fetch(`${api}/todos`, { headers: { Authorization: myToken } })
+  const res = await fetch_response.json()
+  todos.value = res.data
+  console.log(todos.value)
 }
+//新增
+const addTodo = async () => {
+  getTodos()
+  const fetch_response = await fetch(`${api}/todos`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: myToken
+    },
+    body: JSON.stringify(newtodo.value)
+  })
+  const res = await fetch_response.json()
+  console.log(res)
+  newtodo.value = ''
+}
+
 const deleteTodo = (item) => {
   const index = todos.value.findIndex((todo) => todo.id === item.id)
   todos.value.splice(index, 1)
 }
 
 //tab
+const changeState = async (id) => {
+  const fetch_response = await fetch(`${api}/todos/${id}/toggle`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: myToken
+    }
+  })
+  const res = await fetch_response.json()
+  console.log(res)
+  getTodos()
+}
+const tabs = ref([{ title: '全部' }, { title: '待完成' }, { title: '已完成' }])
 const selectedIndex = ref(0)
 const filterList = computed(() => {
   if (selectedIndex.value === 1) {
-    return todos.value.filter((todo) => todo.checked == false)
+    return todos.value.filter((todo) => todo.status == false)
   } else if (selectedIndex.value === 2) {
-    return todos.value.filter((todo) => todo.checked == true)
+    return todos.value.filter((todo) => todo.status == true)
   } else {
     return todos.value
   }
 })
-//全部數量
+//待完成數量
 const unfinishedCount = computed(() => {
-  const unfinished = todos.value.filter((todo) => todo.checked == false)
+  const unfinished = todos.value.filter((todo) => todo.status == false)
   return unfinished.length
 })
 //沒有數量時待目前尚無待辦事項
@@ -76,9 +111,9 @@ const noCount = computed(() => {
   }
 })
 </script>
+
 <template>
- <!-- ToDo List -->
-  <div id="todoListPage" class="bg-half" >
+  <div id="todoListPage" class="bg-half">
     <nav>
       <h1><a href="#">ONLINE TODO LIST</a></h1>
       <ul>
@@ -91,7 +126,7 @@ const noCount = computed(() => {
     <div class="conatiner todoListPage vhContainer">
       <div class="todoList_Content">
         <div class="inputBox">
-          <input type="text" placeholder="請輸入待辦事項" v-model="text" />
+          <input type="text" placeholder="請輸入待辦事項" v-model="newtodo.content" />
           <a @click="addTodo"> + </a>
         </div>
         <div v-if="noCountShow">{{ noCount }}</div>
@@ -105,9 +140,14 @@ const noCount = computed(() => {
             <ul class="todoList_item">
               <li v-for="item in filterList" :key="item.id">
                 <label class="todoList_label">
-                  <input class="todoList_input" type="checkbox" v-model="item.checked" />
-                  <span :class="{ 'text-decoration-line-through': item.checked }">
-                    {{ item.text }}
+                  <input
+                    class="todoList_input"
+                    type="checkbox"
+                    @click="changeState(item.id, item.status)"
+                    :checked="item.status"
+                  />
+                  <span :class="{ 'text-decoration-line-through': item.status }">
+                    {{ item.content }}
                   </span>
                 </label>
                 <button type="button" @click="deleteTodo(item)" class="btn">X</button>
@@ -120,7 +160,7 @@ const noCount = computed(() => {
         </div>
       </div>
     </div>
-  </div>   
+  </div>
 </template>
 
 <style scoped src="./HomeView.css"></style>
