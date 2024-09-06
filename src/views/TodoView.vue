@@ -3,7 +3,6 @@ import axios from 'axios'
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 const api = 'https://todolist-api.hexschool.io'
-
 //驗證登入
 const myToken = document.cookie.replace(
   /(?:(?:^|.*;\s*)todolistCookieName\s*\=\s*([^;]*).*$)|^.*$/,
@@ -14,6 +13,7 @@ const router = useRouter()
 const user = ref({
   nickname: route.query.name
 })
+const addLoading=ref(false)
 //撈資料
 onMounted(() => {
   if (myToken) {
@@ -42,29 +42,31 @@ const signoutButton = async () => {
 //代辦事項
 const text = ref('')
 const todos = ref([])
-const newtodo = ref({ content: '' })
-
+const newtodo = ref('')
 //讀取
 const getTodos = async () => {
   const fetch_response = await fetch(`${api}/todos`, { headers: { Authorization: myToken } })
   const res = await fetch_response.json()
   todos.value = res.data
-  // console.log(todos.value)
 }
 //新增
 const addTodo = async () => {
-  getTodos()
+    if(newtodo.value.length<=0){
+        return
+    }
+    addLoading.value=true
   const fetch_response = await fetch(`${api}/todos`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: myToken
     },
-    body: JSON.stringify(newtodo.value)
+    body: JSON.stringify({content:newtodo.value})
   })
   const res = await fetch_response.json()
-  // console.log(res)
   newtodo.value = ''
+  await getTodos()
+  addLoading.value=false
 }
 //刪除
 const deleteTodo = async (item) => {
@@ -74,15 +76,10 @@ const deleteTodo = async (item) => {
     headers: {
       Authorization: myToken
     },
-    body: JSON.stringify()
   })
   const res = await fetch_response.json(id)
-  // console.log(res)
-  // const index = todos.value.findIndex((todo) => todo.id === id)
-  // todos.value.splice(index, 1)
-  getTodos()
+  await getTodos()
 }
-
 //tab
 const changeState = async (id) => {
   const fetch_response = await fetch(`${api}/todos/${id}/toggle`, {
@@ -93,8 +90,7 @@ const changeState = async (id) => {
     }
   })
   const res = await fetch_response.json()
-  console.log(res)
-  getTodos()
+  await getTodos()
 }
 const tabs = ref([{ title: '全部' }, { title: '待完成' }, { title: '已完成' }])
 const selectedIndex = ref(0)
@@ -112,15 +108,6 @@ const unfinishedCount = computed(() => {
   const unfinished = todos.value.filter((todo) => todo.status == false)
   return unfinished.length
 })
-//沒有數量時待目前尚無待辦事項
-const noCountShow = ref(true)
-const noCount = computed(() => {
-  if (todos.value.length === 0) {
-    return '目前尚無待辦事項'
-  } else {
-    noCountShow.value = false
-  }
-})
 </script>
 
 <template>
@@ -137,11 +124,11 @@ const noCount = computed(() => {
     <div class="conatiner todoListPage vhContainer">
       <div class="todoList_Content">
         <div class="inputBox">
-          <input type="text" placeholder="請輸入待辦事項" v-model="newtodo.content" />
-          <a @click="addTodo"> + </a>
+          <input type="text" placeholder="請輸入待辦事項" v-model="newtodo" />
+          <button @click="addTodo" class="add-btn" :disabled="addLoading"> + </button>
         </div>
-        <div v-if="noCountShow">{{ noCount }}</div>
-        <div class="todoList_list" v-if="!noCountShow">
+        <div v-if="todos.length<=0">目前尚無待辦事項</div>
+        <div class="todoList_list" v-else>
           <ul class="todoList_tab">
             <li v-for="(tab, index) in tabs" :key="index" @click="selectedIndex = index">
               <a :class="{ active: selectedIndex === index }">{{ tab.title }}</a>

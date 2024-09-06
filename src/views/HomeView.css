@@ -3,6 +3,10 @@ button,
 a {
   cursor: pointer;
 }
+.add-btn{
+  background-color: #242424;
+  color: #fff;
+}
 .error {
   display: none;
 }
@@ -326,7 +330,7 @@ nav ul a span {
   padding-left: 16px;
 }
 
-.inputBox a {
+.add-btn {
   display: block;
   width: 40px;
   height: 39px;
